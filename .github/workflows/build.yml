@@ -1,0 +1,57 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Cho phép chạy thủ công
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    - name: Download FFmpeg
+      run: |
+        $ffmpegDir = "ffmpeg\bin"
+        New-Item -ItemType Directory -Path $ffmpegDir -Force | Out-Null
+        Invoke-WebRequest -Uri "https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-win64-gpl.zip" -OutFile "ffmpeg.zip"
+        Expand-Archive -Path "ffmpeg.zip" -DestinationPath "_ffmpeg_extract" -Force
+        Get-ChildItem -Path "_ffmpeg_extract" -Recurse -Filter "ffmpeg.exe" | ForEach-Object { Copy-Item $_.FullName -Destination "$ffmpegDir\ffmpeg.exe" -Force }
+        Get-ChildItem -Path "_ffmpeg_extract" -Recurse -Filter "ffprobe.exe" | ForEach-Object { Copy-Item $_.FullName -Destination "$ffmpegDir\ffprobe.exe" -Force }
+    
+    - name: Build EXE with PyInstaller
+      run: |
+        pyinstaller --onefile --noconsole --name Veo3App --add-binary "ffmpeg\bin\ffmpeg.exe;." --add-binary "ffmpeg\bin\ffprobe.exe;." main.py
+    
+    - name: Upload EXE artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Veo3App-exe
+        path: dist/Veo3App.exe
+        retention-days: 30
+    
+    - name: Create Release (if tag)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/Veo3App.exe
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
