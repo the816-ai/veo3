@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# Build outputs
+dist/
+build/
+*.spec
+*.egg-info/
+
+# FFmpeg binaries (download separately)
+ffmpeg/bin/*.exe
+ffmpeg*.zip
+ffmpeg*.7z
+_ffmpeg_extract/
+*.zip
+
+# Output files
+output_*.mp4
+_ffconcat.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Certificates (if any)
+*.pfx
+*.p12
+
+# Temporary files
+*.tmp
+*.temp
+
